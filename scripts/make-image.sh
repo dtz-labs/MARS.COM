@@ -30,17 +30,6 @@ com="$BUILD_DIR/MARS.COM"
 rm -rf "$work"
 mkdir -p "$work"
 
-verify_sha() {
-  local file="$1" expected="$2" label="$3" actual
-  if command -v shasum >/dev/null 2>&1; then
-    actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
-  else
-    actual=$(sha256sum "$file" | cut -d' ' -f1)
-  fi
-  [ "$actual" = "$expected" ] \
-    || die "$label checksum mismatch: expected $expected, got $actual"
-}
-
 # --- FreeDOS boot floppy -------------------------------------------------
 log "Fetching the FreeDOS boot floppy"
 curl -sSfL --max-time 180 "$FREEDOS_IMG_URL" -o "$work/freedos.img" \

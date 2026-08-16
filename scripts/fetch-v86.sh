@@ -29,6 +29,7 @@ log "Fetching v86 $V86_VERSION from npm"
 
 tarball="$work/v86-$V86_VERSION.tgz"
 [ -f "$tarball" ] || die "expected tarball $tarball was not produced"
+verify_sha "$tarball" "$V86_TARBALL_SHA256" "v86 npm tarball"
 
 tar xzf "$tarball" -C "$work" \
   package/build/libv86.js \
@@ -40,13 +41,18 @@ cp "$work/package/build/v86.wasm"  "$dest/v86.wasm"
 
 # SeaBIOS and the VGA BIOS are not in the npm package.
 log "Fetching BIOS blobs from $V86_BIOS_REPO@$V86_BIOS_REF"
-for blob in seabios.bin vgabios.bin; do
+fetch_bios() {
+  local blob="$1" expected="$2"
   curl -sSfL --max-time 120 \
     "https://raw.githubusercontent.com/$V86_BIOS_REPO/$V86_BIOS_REF/bios/$blob" \
     -o "$dest/bios/$blob" \
     || die "could not fetch bios/$blob"
   [ -s "$dest/bios/$blob" ] || die "bios/$blob came back empty"
-done
+  verify_sha "$dest/bios/$blob" "$expected" "bios/$blob"
+}
+
+fetch_bios seabios.bin "$V86_SEABIOS_SHA256"
+fetch_bios vgabios.bin "$V86_VGABIOS_SHA256"
 
 rm -rf "$work"
 
