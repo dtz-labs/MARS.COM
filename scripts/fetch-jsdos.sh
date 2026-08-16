@@ -29,12 +29,16 @@ log "Fetching js-dos $JSDOS_VERSION from npm"
 tarball="$work/js-dos-$JSDOS_VERSION.tgz"
 [ -f "$tarball" ] || die "expected tarball $tarball was not produced"
 
+# wlibzip is not optional: js-dos unpacks the .jsdos bundle (a ZIP) with it
+# at runtime, and without it the emulator 404s before DOS ever boots.
 tar xzf "$tarball" -C "$work" \
   package/dist/js-dos.js \
   package/dist/js-dos.css \
   package/dist/emulators/emulators.js \
   package/dist/emulators/wdosbox.js \
   package/dist/emulators/wdosbox.wasm \
+  package/dist/emulators/wlibzip.js \
+  package/dist/emulators/wlibzip.wasm \
   || die "js-dos tarball did not contain the expected dist layout"
 
 cp "$work/package/dist/js-dos.js"  "$dest/js-dos.js"
@@ -42,6 +46,8 @@ cp "$work/package/dist/js-dos.css" "$dest/js-dos.css"
 cp "$work/package/dist/emulators/emulators.js" "$dest/emulators/emulators.js"
 cp "$work/package/dist/emulators/wdosbox.js"   "$dest/emulators/wdosbox.js"
 cp "$work/package/dist/emulators/wdosbox.wasm" "$dest/emulators/wdosbox.wasm"
+cp "$work/package/dist/emulators/wlibzip.js"   "$dest/emulators/wlibzip.js"
+cp "$work/package/dist/emulators/wlibzip.wasm" "$dest/emulators/wlibzip.wasm"
 
 rm -rf "$work"
 

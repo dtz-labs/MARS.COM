@@ -10,6 +10,9 @@ assert_file_exists "$BUILD_DIR/js-dos/js-dos.css"
 assert_file_exists "$BUILD_DIR/js-dos/emulators/emulators.js"
 assert_file_exists "$BUILD_DIR/js-dos/emulators/wdosbox.js"
 assert_file_exists "$BUILD_DIR/js-dos/emulators/wdosbox.wasm"
+# wlibzip unpacks the .jsdos bundle at runtime; without it nothing boots.
+assert_file_exists "$BUILD_DIR/js-dos/emulators/wlibzip.js"
+assert_file_exists "$BUILD_DIR/js-dos/emulators/wlibzip.wasm"
 
 # The heavy dosbox-x builds must NOT be shipped (~15.5 MB of dead weight).
 if [ -f "$BUILD_DIR/js-dos/emulators/wdosbox-x.wasm" ]; then
