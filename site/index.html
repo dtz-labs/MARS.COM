@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MARS — a martian landscape in 1550 bytes</title>
+<meta name="description" content="Tim J. Clarke's 1993 martian landscape renderer, disassembled and reduced to about 1.5 KB, running in your browser.">
+<link rel="stylesheet" href="js-dos/js-dos.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main>
+  <header>
+    <h1>MARS</h1>
+    <p class="tagline">A martian landscape renderer from 1993, in <strong>1550 bytes</strong>.</p>
+  </header>
+
+  <div id="player">
+    <div id="dos"></div>
+    <noscript><p class="notice">This demo needs JavaScript to run the DOS emulator.</p></noscript>
+    <p id="error" class="notice" hidden></p>
+  </div>
+
+  <p class="hint">
+    Click the canvas to capture your mouse &mdash; moving it pans the camera.
+    Press <kbd>Esc</kbd> to release.
+  </p>
+
+  <section>
+    <h2>What this is</h2>
+    <p>
+      In 1993 <strong>Tim J. Clarke</strong> wrote a real-time martian landscape
+      renderer that fit in a 5649-byte DOS executable. In 2021
+      <strong>Wojciech Bruzda</strong> disassembled it, rewrote it, and reduced it
+      to roughly a tenth of that size &mdash; the binary running above is
+      assembled from that annotated source.
+    </p>
+    <p>
+      It draws into VGA mode 13h and reprograms the palette DAC directly, which
+      is why the emulator here is pinned to <code>machine=vgaonly</code>.
+    </p>
+  </section>
+
+  <footer>
+    <ul class="links">
+      <li><a href="MARS.ASM">Read the annotated assembly</a></li>
+      <li><a href="MARS.COM" download>Download MARS.COM (1550 bytes)</a></li>
+      <li><a href="https://github.com/dtz-labs/MARS.COM">This repository</a></li>
+      <li><a href="https://github.com/matrix-toolbox/MARS.COM">Upstream by Wojciech Bruzda</a></li>
+    </ul>
+    <p class="legal">
+      Original renderer by Tim J. Clarke, 1993. Disassembly and size reduction by
+      Wojciech Bruzda, 2021. Source released under GPL-3.0. Emulation by js-dos.
+    </p>
+  </footer>
+</main>
+
+<script src="js-dos/js-dos.js"></script>
+<script>
+  (function () {
+    var errorEl = document.getElementById("error");
+
+    function showError(message) {
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+    }
+
+    if (typeof Dos !== "function") {
+      showError("Could not load the DOS emulator. Try reloading the page.");
+      return;
+    }
+
+    try {
+      Dos(document.getElementById("dos"), {
+        url: "mars.jsdos",
+        // Point every emulator asset at our own origin. Without this,
+        // js-dos falls back to its public CDN.
+        pathPrefix: "js-dos/emulators/",
+        backend: "dosbox",
+        theme: "dark",
+        kiosk: true,
+        noCloud: true,
+        autoStart: true,
+        countDownStart: 0,
+        imageRendering: "pixelated",
+        mouseCapture: true,
+        onEvent: function (event) {
+          if (event === "emu-ready" || event === "ci-ready") {
+            errorEl.hidden = true;
+          }
+        }
+      });
+    } catch (e) {
+      showError("The DOS emulator failed to start: " + e.message);
+    }
+  })();
+</script>
+
+</body>
+</html>
