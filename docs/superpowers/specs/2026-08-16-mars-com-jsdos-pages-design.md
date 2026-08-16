@@ -64,6 +64,16 @@ These were established by direct investigation, not assumption:
 
 ### Components
 
+**`versions.env`** — the single source of truth for every pin: JWasm tag, js-dos
+version, the expected `MARS.COM` size and SHA-256, and the `.COM` size ceiling.
+Plain `KEY=value` so both shell scripts and CI can read it.
+
+**`scripts/lib.sh`** — sourced by every script. Sets `set -euo pipefail`, derives
+the repo paths, loads `versions.env`, and provides `log`, `die`, and `need`.
+
+**`tests/`** — a dependency-free bash test harness (`tests/lib.sh` assertions,
+`tests/run-tests.sh` runner) with one test file per script.
+
 **`scripts/build.sh`** — assembles `MARS.ASM` into `MARS.COM`.
 
 Resolves a toolchain in order: `$JWASM` environment variable, then `jwasm` on
@@ -118,7 +128,8 @@ directory, `backend: "dosbox"`, and `url` pointing at `mars.jsdos`.
 
 **`.github/workflows/ci.yml`** — on push and pull request.
 
-Runs `scripts/build.sh`, asserts the output is non-empty and under 64 KB, and
+Runs `scripts/build.sh --check`, which asserts the output is non-empty, within
+the `.COM` ceiling, and byte-identical to the pinned size and SHA-256. Also
 records size and SHA-256 in the job summary. Uploads `MARS.COM` as a workflow
 artifact.
 
@@ -155,8 +166,14 @@ At page view time nothing is fetched from outside the Pages origin.
   `command not found`.
 - **Assembly failure.** JWasm's non-zero exit fails the build; its diagnostics
   are surfaced verbatim. CI does not deploy a stale binary.
-- **Size regression.** CI fails if the output is empty or exceeds 64 KB, which
-  would mean the tiny-model assumption has broken.
+- **Size regression.** `build.sh` fails if the output is empty or exceeds
+  **65280 bytes** (0xFF00 — the true `.COM` ceiling, since the PSP occupies the
+  first 256 bytes of the segment), which would mean the tiny-model assumption
+  has broken.
+- **Unintended source change.** `build.sh --check`, which CI runs, fails if the
+  binary no longer matches the pinned size and SHA-256. A deliberate change to
+  `MARS.ASM` must update `versions.env` in the same commit, making it visible in
+  review rather than silent.
 - **js-dos fetch failure.** The Pages build fails rather than deploying a page
   with missing emulator assets.
 - **Browser-side load failure.** The page shows an inline error message instead
