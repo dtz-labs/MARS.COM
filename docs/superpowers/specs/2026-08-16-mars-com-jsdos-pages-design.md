@@ -2,7 +2,55 @@
 
 **Date:** 2026-08-16
 **Repo:** `dtz-labs/MARS.COM` (fork of `matrix-toolbox/MARS.COM`, GPL-3.0)
-**Status:** approved design
+**Status:** revision 2 — shipped and visually confirmed
+
+---
+
+## Revision 2: js-dos replaced by v86
+
+**Everything below this section describing js-dos is superseded.** It is kept
+as the decision record rather than rewritten, because the reason for the change
+is more useful than a tidy document.
+
+**What happened.** The js-dos player crashed repeatedly in Firefox with
+`Backend crashed, cause: ...`. That string comes from `wdosbox.js`, the
+Emscripten DOSBox module's exception handler, which fires on any uncaught
+exception in the wasm DOSBox other than a clean `exit(0)`. So the DOSBox core
+itself was throwing — not the page, not the bundle, not our configuration.
+
+**Why not another DOSBox wrapper.** js-dos, em-dosbox, DOSee and Emularity all
+wrap the same DOSBox core. Switching between them would have reproduced the
+same crash. Only emulators that emulate *hardware* rather than the DOS API have
+genuinely different failure modes.
+
+**What replaced it.** [v86](https://github.com/copy/v86) (BSD), pinned to
+0.5.432, emulating a full PC. The page boots the 720 KB FreeDOS floppy used by
+v86's own demos, with `MARS.COM`, CuteMouse and an `AUTOEXEC.BAT` injected at
+build time via `mtools`.
+
+**The non-obvious consequence.** MARS calls `int 33h` (`MARS.ASM:122`, `:388`).
+DOSBox implements that service internally; hardware emulation does not. A
+resident DOS mouse driver therefore became a hard requirement of the new
+design. MARS checks for the driver (`setz` at `:124`, tested at `:385`) and
+degrades gracefully, so a missing driver costs camera control rather than the
+whole demo — which makes the mouse an independently testable step, not a
+prerequisite for first render.
+
+**Superseded components.** `scripts/bundle.sh` and `scripts/fetch-jsdos.sh` are
+gone, replaced by `scripts/make-image.sh` and `scripts/fetch-v86.sh`. The
+`.jsdos` bundle is replaced by a bootable floppy image. Building the site now
+requires `mtools`.
+
+**Supply-chain note.** Every third-party download — v86 runtime, both BIOS
+blobs, the FreeDOS image, the mouse driver — is pinned by SHA-256, and the BIOS
+blobs are pinned to an immutable commit rather than a branch, since they are
+executed by the emulator.
+
+**Verification.** The build is verified by CI on Linux and reproduces
+byte-identically on macOS. The rendered demo was confirmed visually in a real
+browser on 2026-08-16.
+
+---
 
 ## Purpose
 

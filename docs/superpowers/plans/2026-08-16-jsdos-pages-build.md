@@ -10,6 +10,14 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-16-mars-com-jsdos-pages-design.md`
 
+> **Status: executed, then partly superseded.** Tasks 1, 2, 5-9 shipped as
+> written. Tasks 3 and 4 (js-dos bundle and js-dos asset fetch) were replaced
+> after execution: js-dos crashed in Firefox from inside the DOSBox core, so the
+> player was swapped for v86 booting a real FreeDOS floppy. See "Revision 2" at
+> the top of the spec. Two defects this plan did not anticipate are recorded
+> inline below: JWasm's makefile does not build on macOS, and the js-dos asset
+> subset omitted `wlibzip`, without which the emulator 404'd before DOS booted.
+
 ## Global Constraints
 
 - **Assembler:** JWasm, pinned to tag `v2.20`, repo `https://github.com/Baron-von-Riedesel/JWasm.git`. Build with `make -f GccUnix.mak`; binary lands at `build/GccUnixR/jwasm` inside the JWasm checkout.
