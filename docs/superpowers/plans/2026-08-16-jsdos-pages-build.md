@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - **Assembler:** JWasm, pinned to tag `v2.20`, repo `https://github.com/Baron-von-Riedesel/JWasm.git`. Build with `make -f GccUnix.mak`; binary lands at `build/GccUnixR/jwasm` inside the JWasm checkout.
+- **macOS caveat (found during execution, not anticipated by this plan):** `GccUnix.mak` targets Linux/FreeBSD. On Darwin it needs (a) an include shim so `<malloc.h>` resolves to `<stdlib.h>`, injected by overriding `inc_dirs`, and (b) removal of the GNU-only `-s` and `-Wl,-Map` link flags, which are hardcoded in the recipe and must be `sed`-stripped. `scripts/build.sh` applies both automatically when `uname -s` is `Darwin`. Verified: the macOS/clang/ARM64 build produces a `MARS.COM` byte-identical to the Linux/gcc/aarch64 build.
 - **js-dos:** pinned to version `8.4.1`, fetched via `npm pack js-dos@8.4.1`.
 - **Emulator backend:** `dosbox` (`wdosbox.js` + `wdosbox.wasm`, ~1.5 MB). Do **not** ship `wdosbox-x*` (~15.5 MB combined).
 - **Expected build output:** `MARS.COM`, exactly **1550 bytes**, SHA-256 `10a1bb6c319296dd8628e8fd2d705b50fca97b82d6d9a811c91c30c06199d773`. Verified byte-identical under JWasm v2.20 and v2.21.
