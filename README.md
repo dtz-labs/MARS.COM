@@ -4,23 +4,23 @@ A comprehensive study of the outstanding code example from 1993 — the martian
 landscape renderer by Tim J. Clarke.
 
 Original code has been disassembled, rewritten and reduced from **5649** bytes
-to about **1.5 kB** by [Wojciech Bruzda](https://github.com/matrix-toolbox).
+to about **1.5 kB**! :)
 
-**Tim, if you read this, please contact
-[upstream](https://github.com/matrix-toolbox/MARS.COM)!**
+**Tim, if you read this, please contact me! I was trying to reach you, but I
+couldn't...**
 
 ![MARS](mars_4_3.png)
 
 ## ▶ Run it in your browser
 
-**<https://dtz-labs.github.io/MARS.COM/>**
+**<https://matrix-toolbox.github.io/MARS.COM/>**
 
 Click the canvas to capture the mouse — moving it pans the camera.
 
-## What this fork adds
+## Building and running it here
 
-Upstream ships the annotated assembly only. This fork adds a reproducible
-build and a browser player:
+Alongside the annotated assembly, this repository can build the binary and
+publish a browser-playable page:
 
 - `scripts/build.sh` — assembles `MARS.ASM` into `MARS.COM`
 - `scripts/build-site.sh` — composes the GitHub Pages site
