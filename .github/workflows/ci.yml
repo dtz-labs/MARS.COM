@@ -21,6 +21,9 @@ jobs:
           path: .toolchain
           key: jwasm-${{ hashFiles('versions.env') }}
 
+      - name: Install mtools (needed to build the FreeDOS floppy image)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq mtools
+
       - name: Assemble MARS.COM and verify reproducibility
         run: bash scripts/build.sh --check
 

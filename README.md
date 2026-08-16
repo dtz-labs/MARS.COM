@@ -46,6 +46,21 @@ from source into `.toolchain/` automatically. With no C compiler available,
 On macOS the JWasm build needs two portability fixes (its makefile targets
 Linux/FreeBSD); `build.sh` applies them automatically.
 
+Building the site also needs `mtools` (`brew install mtools` /
+`apt-get install mtools`) to write `MARS.COM` into the floppy image.
+
+### How the browser player works
+
+The page boots a real emulated PC rather than emulating DOS. `make image`
+takes the 720 KB FreeDOS boot floppy used by v86's own demos and injects
+`MARS.COM`, the CuteMouse driver, and an `AUTOEXEC.BAT` that loads the driver
+and runs the program. Both downloads are checksum-pinned in `versions.env`.
+
+The mouse driver is not optional: MARS calls `int 33h`, which DOSBox-based
+players implement internally but hardware emulation does not. Without a
+resident driver the landscape still renders — MARS checks for the driver and
+degrades gracefully — but the camera never moves.
+
 ### Build output
 
 The pinned toolchain produces a **1550-byte** `MARS.COM`
@@ -67,6 +82,8 @@ artifacts. More details are on the
 
 - Original martian landscape renderer — **Tim J. Clarke**, 1993
 - Disassembly, rewrite and size reduction — **Wojciech Bruzda**, 2021
-- Browser emulation — [js-dos](https://js-dos.com), pinned in `versions.env`
+- Browser emulation — [v86](https://github.com/copy/v86) (BSD), booting
+  [FreeDOS](https://www.freedos.org/) with the
+  [CuteMouse](https://cutemouse.sourceforge.net/) driver (GPL)
 
 Released under GPL-3.0, as upstream.

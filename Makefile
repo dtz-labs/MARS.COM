@@ -1,5 +1,5 @@
 # Thin wrappers over scripts/. Every target is also runnable directly.
-.PHONY: all build bundle jsdos site serve test clean help
+.PHONY: all build image v86 site serve test clean help
 
 all: site
 
@@ -11,11 +11,11 @@ help:   ## List the available targets
 build:   ## Assemble MARS.ASM into build/MARS.COM
 	@bash scripts/build.sh
 
-bundle: build   ## Package build/mars.jsdos for js-dos
-	@bash scripts/bundle.sh
+image: build   ## Build the bootable FreeDOS floppy (build/mars.img)
+	@bash scripts/make-image.sh
 
-jsdos:   ## Fetch the pinned js-dos assets
-	@bash scripts/fetch-jsdos.sh
+v86:   ## Fetch the pinned v86 runtime and BIOS blobs
+	@bash scripts/fetch-v86.sh
 
 site:   ## Compose the deployable site into _site/
 	@bash scripts/build-site.sh

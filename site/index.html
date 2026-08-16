@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MARS — a martian landscape in 1550 bytes</title>
 <meta name="description" content="Tim J. Clarke's 1993 martian landscape renderer, disassembled and reduced to about 1.5 KB, running in your browser.">
-<link rel="stylesheet" href="js-dos/js-dos.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,13 +17,16 @@
   </header>
 
   <div id="player">
-    <div id="dos"></div>
-    <noscript><p class="notice">This demo needs JavaScript to run the DOS emulator.</p></noscript>
-    <p id="error" class="notice" hidden></p>
+    <div id="screen_container">
+      <div class="v86-text"></div>
+      <canvas></canvas>
+    </div>
+    <p id="status" class="notice">Booting FreeDOS&hellip;</p>
+    <noscript><p class="notice">This demo needs JavaScript to run the emulator.</p></noscript>
   </div>
 
   <p class="hint">
-    Click the canvas to capture your mouse &mdash; moving it pans the camera.
+    Click the screen to capture your mouse &mdash; moving it pans the camera.
     Press <kbd>Esc</kbd> to release.
   </p>
 
@@ -37,8 +40,9 @@
       assembled from that annotated source.
     </p>
     <p>
-      It draws into VGA mode 13h and reprograms the palette DAC directly, which
-      is why the emulator here is pinned to <code>machine=vgaonly</code>.
+      It draws into VGA mode 13h, reprograms the palette DAC directly, and needs
+      32-bit registers, so it requires a 386 or better. Rather than emulate DOS,
+      this page boots an actual FreeDOS floppy on an emulated PC.
     </p>
   </section>
 
@@ -51,49 +55,71 @@
     </ul>
     <p class="legal">
       Original renderer by Tim J. Clarke, 1993. Disassembly and size reduction by
-      Wojciech Bruzda, 2021. Source released under GPL-3.0. Emulation by js-dos.
+      Wojciech Bruzda, 2021. Source released under GPL-3.0. Emulation by v86,
+      booting FreeDOS with the CuteMouse driver.
     </p>
   </footer>
 </main>
 
-<script src="js-dos/js-dos.js"></script>
+<script src="v86/libv86.js"></script>
 <script>
   (function () {
-    var errorEl = document.getElementById("error");
+    var statusEl = document.getElementById("status");
+    var container = document.getElementById("screen_container");
 
-    function showError(message) {
-      errorEl.textContent = message;
-      errorEl.hidden = false;
+    function say(message, isError) {
+      statusEl.textContent = message;
+      statusEl.hidden = false;
+      statusEl.classList.toggle("is-error", !!isError);
     }
 
-    if (typeof Dos !== "function") {
-      showError("Could not load the DOS emulator. Try reloading the page.");
+    function hideStatus() {
+      statusEl.hidden = true;
+    }
+
+    if (typeof V86 !== "function") {
+      say("Could not load the emulator. Try reloading the page.", true);
       return;
     }
 
+    var emulator;
     try {
-      Dos(document.getElementById("dos"), {
-        url: "mars.jsdos",
-        // Point every emulator asset at our own origin. Without this,
-        // js-dos falls back to its public CDN.
-        pathPrefix: "js-dos/emulators/",
-        backend: "dosbox",
-        theme: "dark",
-        kiosk: true,
-        noCloud: true,
-        autoStart: true,
-        countDownStart: 0,
-        imageRendering: "pixelated",
-        mouseCapture: true,
-        onEvent: function (event) {
-          if (event === "emu-ready" || event === "ci-ready") {
-            errorEl.hidden = true;
-          }
-        }
+      emulator = new V86({
+        wasm_path: "v86/v86.wasm",
+        memory_size: 32 * 1024 * 1024,
+        vga_memory_size: 2 * 1024 * 1024,
+        screen_container: container,
+        bios: { url: "v86/bios/seabios.bin" },
+        vga_bios: { url: "v86/bios/vgabios.bin" },
+        fda: { url: "mars.img" },
+        autostart: true
       });
     } catch (e) {
-      showError("The DOS emulator failed to start: " + e.message);
+      say("The emulator failed to start: " + e.message, true);
+      return;
     }
+
+    // Once the program switches to graphics mode we are past the DOS boot,
+    // so the status line has done its job.
+    emulator.add_listener("screen-set-mode", function (isGraphical) {
+      if (isGraphical) hideStatus();
+    });
+
+    emulator.add_listener("emulator-started", function () {
+      say("Loading MARS…");
+    });
+
+    // v86 delivers relative mouse motion only while the pointer is locked,
+    // which is exactly what int 33h wants.
+    container.addEventListener("click", function () {
+      if (container.requestPointerLock) container.requestPointerLock();
+    });
+
+    document.addEventListener("pointerlockchange", function () {
+      var locked = document.pointerLockElement === container;
+      if (emulator.mouse_set_status) emulator.mouse_set_status(locked);
+      container.classList.toggle("is-locked", locked);
+    });
   })();
 </script>
 
